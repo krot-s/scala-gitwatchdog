@@ -6,10 +6,19 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>${project.artifactId}</name>
 	<description>Git watchdog</description>
-	
+
 	<properties>
 		<scala.version>2.10.0</scala.version>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>krot-s github</id>
+			<url>https://github.com/krot-s/maven-repo/raw/master</url>			
+		</repository>
+
+	</repositories>
+
 
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
@@ -34,19 +43,51 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-library</artifactId>
 			<version>${scala.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.freedesktop</groupId>
+			<artifactId>dbus</artifactId>
+			<version>2.7</version>
+		</dependency>
+		<dependency>
+			<groupId>cx.ath.mattew</groupId>
+			<artifactId>unix</artifactId>
+			<version>0.5</version>
+			<type>jar</type>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>cx.ath.mattew</groupId>
+			<artifactId>cgi</artifactId>
+			<version>0.5</version>
+			<type>jar</type>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>cx.ath.mattew</groupId>
+			<artifactId>debug</artifactId>
+			<version>1.1</version>
+			<type>jar</type>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>cx.ath.mattew</groupId>
+			<artifactId>hexdump</artifactId>
+			<version>0.2</version>
+			<type>jar</type>
+			<scope>runtime</scope>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
 			<scope>test</scope>
-		</dependency>
+		</dependency>		
 	</dependencies>
 </project>
