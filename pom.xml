@@ -16,7 +16,6 @@
 			<id>krot-s github</id>
 			<url>https://github.com/krot-s/maven-repo/raw/master</url>			
 		</repository>
-
 	</repositories>
 
 

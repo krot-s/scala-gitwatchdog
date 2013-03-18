@@ -12,19 +12,27 @@ package gitwatchdog {
   import org.freedesktop.Notifications
 
   object DBus {
+    /**
+     * implicits for adding signal handlers as function objects
+     */
+    implicit def functionToSigHandler[T <: DBusSignal](f: T => Unit) = {
+      new DBusSigHandler[T] {
+        def handle(signal: T) = f(signal)
+      }
+    }
+    
     private val conn = DBusConnection.getConnection(DBusConnection.SESSION)
 
     def sendNotification(text: String) {
       val iface = conn.getRemoteObject("org.kde.knotify", "/Notify", classOf[KNotify])
-      KNotify.send(iface, "New commit it watched repository", text)
+      KNotify.send(iface, "New commits it watched repository", text)
     }
 
-    def registerNotificationActionsListener(callback: (Int, Int) => Any) {
-      conn.addSigHandler(classOf[Notifications.ActionInvoked], new DBusSigHandler[Notifications.ActionInvoked] {
-        def handle(notification: Notifications.ActionInvoked) {
-          callback(notification.messageId.intValue(), notification.actionId.toInt)
-        }
-      })
+    def registerNotificationActionsListener(callback: (Int, Int) => Unit) {
+      conn.addSigHandler(classOf[Notifications.ActionInvoked], 
+          (s:Notifications.ActionInvoked) => 
+            callback(s.messageId.intValue(), s.actionId.toInt)
+      )
     }
   }
 }

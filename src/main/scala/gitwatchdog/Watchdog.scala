@@ -80,5 +80,6 @@ class Watchdog(repositories: Seq[File]) {
    */
   def acceptRecords(repository: File) {
     history.add(Git(repository).log.filter(rec => !history.contains(rec)))
+    sent.clear()
   }
 }
