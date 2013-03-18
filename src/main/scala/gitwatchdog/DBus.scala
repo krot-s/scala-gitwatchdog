@@ -12,15 +12,6 @@ package gitwatchdog {
   import org.freedesktop.Notifications
 
   object DBus {
-    /**
-     * implicits for adding signal handlers as function objects
-     */
-    implicit def functionToSigHandler[T <: DBusSignal](f: T => Unit) = {
-      new DBusSigHandler[T] {
-        def handle(signal: T) = f(signal)
-      }
-    }
-    
     private val conn = DBusConnection.getConnection(DBusConnection.SESSION)
 
     def sendNotification(text: String) {
@@ -29,10 +20,10 @@ package gitwatchdog {
     }
 
     def registerNotificationActionsListener(callback: (Int, Int) => Unit) {
-      conn.addSigHandler(classOf[Notifications.ActionInvoked], 
-          (s:Notifications.ActionInvoked) => 
-            callback(s.messageId.intValue(), s.actionId.toInt)
-      )
+      conn.addSigHandler(classOf[Notifications.ActionInvoked], new DBusSigHandler[Notifications.ActionInvoked] {
+    	  def handle(signal: Notifications.ActionInvoked) = 
+    	    callback(signal.messageId.intValue(), signal.actionId.toInt)
+      }) 
     }
   }
 }
