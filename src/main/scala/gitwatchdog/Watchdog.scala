@@ -10,6 +10,7 @@ import scala.collection.immutable.List
 import git._
 import scala.concurrent.ops._
 import java.util.concurrent.ScheduledThreadPoolExecutor
+import gitwatchdog.gui.Swing3
 
 /**
  * Watches changes periodically in given GIT repositories and sends notifications to KNotify when new
@@ -47,6 +48,7 @@ class Watchdog(repositories: Seq[Repository], checkTimeoutSeconds:Long = 2) {
       // TODO: extract data from notification which exact notification has been clicked and add
       // only those commits to history
       for(repo <- repositories) acceptRecords(repo)
+      Swing3.main(Array.empty[String])
     })
         
     threadPool.scheduleAtFixedRate(
