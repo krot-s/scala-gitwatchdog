@@ -4,12 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.io.File
 
-class LogRecord(h: String, a: String, d: Date, r: File) {
-  val hash = h
-  val author = a
-  val date = d
-  val repository = r
-
+class LogRecord(val hash: String, val author: String, val date: Date, val repository: File) {
   override def toString = {
     String.format("Hash = '%s' Author = '%s' Date = '%s'", hash, author, date)
   }
