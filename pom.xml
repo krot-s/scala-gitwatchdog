@@ -50,6 +50,11 @@
 			<version>${scala.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-swing</artifactId>
+			<version>${scala.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.freedesktop</groupId>
 			<artifactId>dbus</artifactId>
 			<version>2.7</version>
