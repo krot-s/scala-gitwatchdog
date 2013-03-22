@@ -21,6 +21,8 @@ import gitwatchdog.gui.Swing3
  * Path is relative to git root.
  */
 class Watchdog(repositories: Seq[Repository], checkTimeoutSeconds:Long = 2) {
+  private final val TWENTY_MINUTES = 20*1000*60
+  
   require({
     // check that all give repositories exist
     repositories.map(_.root).find(!_.exists()).isEmpty &&
@@ -57,18 +59,19 @@ class Watchdog(repositories: Seq[Repository], checkTimeoutSeconds:Long = 2) {
         }, 
         0, checkTimeoutSeconds, TimeUnit.SECONDS)
 
-    // clear "sent" collection once in 20 minutes
+    // clear "sent" collection - remove records older than 20 minutes. run this each second.
     threadPool.scheduleAtFixedRate(
         () => {
-    	    for(key <- sent.filter((x) => x._2.getTime() < new Date().getTime() - 20*1000*60 ).keys)
+    	    for(key <- sent.filter((x) => x._2.getTime() < new Date().getTime() - TWENTY_MINUTES).keys)
     	      sent -= key
     	}, 
-    	20, 20, TimeUnit.MINUTES);
+    	1, 1, TimeUnit.SECONDS);
   }
 
   
   private def checkNewCommits() {
     for (repo <- repositories.distinct) {
+      Git(repo).fetch
       val unvisited = Git(repo).log.filter(rec => !history.contains(rec))      
       if (!unvisited.isEmpty){
         val message = describe(unvisited, repo.root)
