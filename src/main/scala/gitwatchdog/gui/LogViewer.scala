@@ -1,6 +1,5 @@
 package gitwatchdog.gui
 
-
 import java.awt.Dimension
 import scala.collection.immutable.List
 import scala.swing.BorderPanel
@@ -23,20 +22,21 @@ import scala.swing.Reactions
 import javax.swing.Action
 import scala.swing.event.ActionEvent
 import scala.swing.event.ButtonClicked
+import scala.swing.Frame
+import gitwatchdog.LogRecord
 
 
-object Swing3 extends SimpleSwingApplication {
-	def top = new MainFrame {
+class LogViewer(logRecords: Seq[LogRecord]) extends SimpleSwingApplication {
+	def top = new Frame {
 	  title = "Commits accepted"
 	  
 	  val button = new Button("Close")
 	  listenTo(button)
 	  this.reactions += {
-	    case ButtonClicked(b) => println("sdfsdf")
+	    case ButtonClicked(b) => close
 	  } 	  
 	  
-	  val records = List.fill(10)(Rec("1ffffffffffffffffffffffffdddddddddd", "2"))	  	  
-	  val table = new Table(records.map(_.toArray).toArray , Array("col1", "col2"))
+	  val table = new Table(logRecords.map(logRecordToArray(_)).toArray , Array("Hash", "Author", "Date"))
 	  
 	  contents = new GridBagPanel {
 	    val top = new Constraints {
@@ -57,10 +57,9 @@ object Swing3 extends SimpleSwingApplication {
 	  val screenSize = toolkit.getScreenSize()
 	  val screensCount = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices().length
 	  size = new Dimension(screenSize.width / (2 * screensCount), screenSize.height / 2)
+	  
 	  centerOnScreen
 	}
 	
-	case class Rec(val col1: String, val col2: String){
-	  def toArray : Array[Any] = Array(col1, col2)
-	}
+	def logRecordToArray(record: LogRecord) = Array[Any](record.hash, record.author, record.date.toString())
 }

@@ -10,7 +10,7 @@ import scala.collection.immutable.List
 import git._
 import scala.concurrent.ops._
 import java.util.concurrent.ScheduledThreadPoolExecutor
-import gitwatchdog.gui.Swing3
+import gitwatchdog.gui.LogViewer
 
 /**
  * Watches changes periodically in given GIT repositories and sends notifications to KNotify when new
@@ -29,7 +29,7 @@ class Watchdog(repositories: Seq[Repository], checkTimeoutSeconds:Long = 2) {
       !repositories.isEmpty
   })
   
-  private val history = new FileRecordsHistory(new File("/tmp/watchdog"))
+  private val history = new FileRecordsHistory(new File("/tmp/gitwatchdog"))
   
   private val threadPool = java.util.concurrent.Executors.newScheduledThreadPool(1)
   implicit def functionToRunnable(f: () => Unit) = {
@@ -46,11 +46,18 @@ class Watchdog(repositories: Seq[Repository], checkTimeoutSeconds:Long = 2) {
    */
   def start() {
     DBus.registerNotificationActionsListener((messageId, actionId) => {
+      for (repo <- repositories.distinct) {
+    	  val unvisited = Git(repo).log.filter(rec => !history.contains(rec))
+    	  new LogViewer(unvisited).main(Array.empty[String])
+      }
+      
+      
+      
       // add all messages to history when user clicks 'Accept' in notification
       // TODO: extract data from notification which exact notification has been clicked and add
       // only those commits to history
-      for(repo <- repositories) acceptRecords(repo)
-      Swing3.main(Array.empty[String])
+//      for(repo <- repositories) acceptRecords(repo)
+      
     })
         
     threadPool.scheduleAtFixedRate(
