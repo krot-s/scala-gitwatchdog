@@ -2,18 +2,11 @@ package gitwatchdog
 
 import java.io.File
 import gitwatchdog.git.Repository
+import gitwatchdog.config.XmlConfig
 
 object App {
-  def main(args: Array[String]) {
-    // TODO add configuration file
-    val watchdog = new Watchdog(List(
-      new Repository("/home/vkrot/workspace/pls/", List(
-//          "mobile", 
-//          "dao/src/main/java/com/pls/dao/carrier", 
-//          "dao/src/main/java/com/pls/dao/tendering", 
-//          "dao/src/main/java/com/pls/dao/ZoneDaoImpl.java"))
-	    ""))
-    ), 3)    
-    watchdog.start()
+  def main(args: Array[String]) {    
+    val config = XmlConfig.read(new File(System.getenv("HOME") + "/.gitwatchdog/config.xml"))
+    new Watchdog(config.repositories, config.timeout).start    
   }
 }
