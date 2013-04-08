@@ -10,7 +10,8 @@ import scala.collection.immutable.List
 import git._
 import scala.concurrent.ops._
 import java.util.concurrent.ScheduledThreadPoolExecutor
-import gitwatchdog.gui.Swing3
+import gitwatchdog.gui.LogViewer
+import scala.collection.mutable.ListBuffer
 
 /**
  * Watches changes periodically in given GIT repositories and sends notifications to KNotify when new
@@ -21,13 +22,15 @@ import gitwatchdog.gui.Swing3
  * Path is relative to git root.
  */
 class Watchdog(repositories: Seq[Repository], checkTimeoutSeconds:Long = 2) {
+  private final val TWENTY_MINUTES = 20*1000*60
+  
   require({
     // check that all give repositories exist
     repositories.map(_.root).find(!_.exists()).isEmpty &&
       !repositories.isEmpty
   })
   
-  private val history = new FileRecordsHistory(new File("/tmp/watchdog"))
+  private val history = new FileRecordsHistory(new File("/tmp/gitwatchdog"))
   
   private val threadPool = java.util.concurrent.Executors.newScheduledThreadPool(1)
   implicit def functionToRunnable(f: () => Unit) = {
@@ -44,11 +47,13 @@ class Watchdog(repositories: Seq[Repository], checkTimeoutSeconds:Long = 2) {
    */
   def start() {
     DBus.registerNotificationActionsListener((messageId, actionId) => {
-      // add all messages to history when user clicks 'Accept' in notification
-      // TODO: extract data from notification which exact notification has been clicked and add
-      // only those commits to history
-      for(repo <- repositories) acceptRecords(repo)
-      Swing3.main(Array.empty[String])
+      var recs = List.empty[LogRecord]
+      for (repo <- repositories.distinct) {
+    	  val unvisited = Git(repo).log.filter(rec => !history.contains(rec))
+    	  new LogViewer(unvisited).main(Array.empty[String])
+    	  recs = recs ::: unvisited
+      }
+      acceptRecords(recs)
     })
         
     threadPool.scheduleAtFixedRate(
@@ -57,18 +62,19 @@ class Watchdog(repositories: Seq[Repository], checkTimeoutSeconds:Long = 2) {
         }, 
         0, checkTimeoutSeconds, TimeUnit.SECONDS)
 
-    // clear "sent" collection once in 20 minutes
+    // clear "sent" collection - remove records older than 20 minutes. run this each second.
     threadPool.scheduleAtFixedRate(
         () => {
-    	    for(key <- sent.filter((x) => x._2.getTime() < new Date().getTime() - 20*1000*60 ).keys)
+    	    for(key <- sent.filter((x) => x._2.getTime() < new Date().getTime() - TWENTY_MINUTES).keys)
     	      sent -= key
     	}, 
-    	20, 20, TimeUnit.MINUTES);
+    	1, 1, TimeUnit.SECONDS);
   }
 
   
   private def checkNewCommits() {
     for (repo <- repositories.distinct) {
+      Git(repo).fetch
       val unvisited = Git(repo).log.filter(rec => !history.contains(rec))      
       if (!unvisited.isEmpty){
         val message = describe(unvisited, repo.root)
@@ -95,8 +101,8 @@ class Watchdog(repositories: Seq[Repository], checkTimeoutSeconds:Long = 2) {
   /**
    * Add all unvisited records to log
    */
-  private def acceptRecords(repository: Repository) {
-    history.add(Git(repository).log.filter(rec => !history.contains(rec)))
+  private def acceptRecords(records: Seq[LogRecord]) {
+    history.add(records)
     sent.clear()
   }
 }

@@ -9,9 +9,7 @@ import scala.collection.mutable.ListBuffer
 trait ExaminedRecordsHistory {
   def contains(record: LogRecord): Boolean
 
-  def add(record: LogRecord): Unit
-
-  def add(records: List[LogRecord]): Unit
+  def add(records: Seq[LogRecord]): Unit
 }
 
 class FileRecordsHistory(file: File) extends ExaminedRecordsHistory {
@@ -37,15 +35,13 @@ class FileRecordsHistory(file: File) extends ExaminedRecordsHistory {
         x => (record.hash == x._1 && record.repository.getAbsolutePath() == x._2)).isEmpty    
   }
 
-  override def add(records: List[LogRecord]): Unit = {
+  override def add(records: Seq[LogRecord]): Unit = {
     using(new FileWriter(file, true)) {
       file =>
         for (rec <- records) file.write(toString(rec) + "\n")
     }
     history = loadHistory	
   }
-
-  override def add(record: LogRecord): Unit = add(List(record))
 
   private def using(resource: Writer)(f: Writer => Unit) {
     try {

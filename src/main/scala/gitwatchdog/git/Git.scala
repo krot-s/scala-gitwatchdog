@@ -13,17 +13,18 @@ import gitwatchdog.git.Repository
  * GIT functions.
  */
 class Git(repo: Repository) {
+	private def normalizedRepoPath = {
+	  val repoPath = repo.root.getAbsolutePath()
+	  if(repoPath.endsWith("/"))
+		  repoPath else repoPath + "/"
+	}
 	/**
 	 * Get GIT commits. 
 	 */
     def log = {
-      val repoPath = repo.root.getAbsolutePath()
-	  val repoNormalized = if(repoPath.endsWith("/"))
-		  repoPath else repoPath + "/"
-		  
 	  val command = 
-	    """git --git-dir=${repo}.git --work-tree=${repo} log --pretty=format:%H---%an---%ai -- ${paths}"""
-			  .replace("${repo}", repoNormalized)
+	    """git --git-dir=${repo}.git --work-tree=${repo} log origin/dev --pretty=format:%H---%an---%ai -- ${paths}"""
+			  .replace("${repo}", normalizedRepoPath)
 			  .replace("${paths}", repo.paths.mkString(" "))
 			  
 	  val log = new ListBuffer[LogRecord]
@@ -34,6 +35,15 @@ class Git(repo: Repository) {
 
 	  log.toList      
     }    
+    
+    def fetch {
+      val command = 
+	    "git --git-dir=${repo}.git --work-tree=${repo} fetch origin".replace("${repo}", normalizedRepoPath)
+			  
+	  if(Process(command).run().exitValue != 0){
+	    throw new IOException("Git command execution failed");
+	  }	  
+    }
 }
 
 object Git {
