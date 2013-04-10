@@ -15,12 +15,12 @@ object XmlConfig {
     def xmlElemToRepository(elem: Node) = {
       val paths = ListBuffer.empty[String]
       for (path <- elem \ "path")
-        paths += path.text
-      new Repository((elem \ "root").text, paths.toList)
+        paths += path.text.trim()
+      new Repository((elem \ "root").text.trim(), paths.toList)
     }
 
     val xml = XML.loadFile(file)
-    val timeout = (xml \\ "timeout").text.toLong
+    val timeout = (xml \\ "timeout").text.trim().toLong
     val repositories = 
       for (repo <- xml \\ "repository") yield xmlElemToRepository(repo)
     new Config(timeout, repositories)
