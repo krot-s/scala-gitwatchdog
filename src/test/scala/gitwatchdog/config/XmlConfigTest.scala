@@ -33,8 +33,7 @@ class XmlConfigTest extends FlatSpec with ShouldMatchers {
 	}
 	
 	it should "parse valid xml" in {
-	  val file = File.makeTemp(dir = new JFile("/tmp"))
-	  file.writeAll("""
+	  val file = tempFileFromString("""
 		<config>
 		  <timeout>30</timeout>
 		  <repository>
@@ -51,7 +50,7 @@ class XmlConfigTest extends FlatSpec with ShouldMatchers {
 		</config>			  
 	  """)
 	  
-	  val config = XmlConfig.read(file.jfile)
+	  val config = XmlConfig.read(file)
 
 	  config.timeout should be (30)
 	  config.repositories should have length (2)
@@ -64,8 +63,7 @@ class XmlConfigTest extends FlatSpec with ShouldMatchers {
 	}
 	
 	it should "trim all strings" in {
-	  val file = File.makeTemp(dir = new JFile("/tmp"))
-	  file.writeAll("""
+	  val file = tempFileFromString("""
 		<config>
 		  <timeout>30 </timeout>
 		  <repository>
@@ -76,11 +74,17 @@ class XmlConfigTest extends FlatSpec with ShouldMatchers {
 		</config>			  
 	  """)
 	  
-	  val config = XmlConfig.read(file.jfile)
+	  val config = XmlConfig.read(file)
 	  config.timeout should be (30)
 	  
 	  config.repositories should have size (1)	  
 	  config.repositories(0).root.getPath() should be ("/home/vkrot/workspace/pls")
 	  config.repositories(0).paths should be (List("activemq", "backend"))
+	}
+	
+	def tempFileFromString(text: String) = {
+	  val file = File.makeTemp(dir = new JFile("/tmp"))
+	  file.writeAll(text)
+	  file.jfile
 	}
 }
